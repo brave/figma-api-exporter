@@ -12,14 +12,5 @@
     "@types/node": "20.11.5",
     "ts-node-dev": "2.0.0",
     "typescript": "5.3.3"
-  },
-  "dependencies": {
-    "axios": "1.8.2",
-    "figma-js": "1.16.1-0"
-  },
-  "overrides": {
-    "figma-js": {
-      "axios": "$axios"
-    }
   }
 }
