@@ -3,14 +3,12 @@
   "author": "Sławomir Kołodziej",
   "version": "0.0.2",
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
     "prepare": "tsc"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@types/node": "22.13.10",
-    "ts-node-dev": "2.0.0",
     "typescript": "5.8.2"
   }
 }
