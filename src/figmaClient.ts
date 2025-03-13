@@ -1,6 +1,9 @@
-export interface ErrorResponse {
+export type ErrorResponse = {
     err: string;
+} | {
+    error: string
 }
+
 export interface FileImageResponse {
     images: {
         [key: string]: string;
@@ -16,21 +19,21 @@ export interface Node {
     visible?: boolean;
     /** the type of the node, refer to table below for details */
     type: 'DOCUMENT'
-        | 'CANVAS'
-        | 'FRAME'
-        | 'GROUP'
-        | 'VECTOR'
-        | 'BOOLEAN_OPERATION'
-        | 'STAR'
-        | 'LINE'
-        | 'ELLIPSE'
-        | 'REGULAR_POLYGON'
-        | 'RECTANGLE'
-        | 'TEXT'
-        | 'SLICE'
-        | 'COMPONENT'
-        | 'COMPONENT_SET'
-        | 'INSTANCE';
+    | 'CANVAS'
+    | 'FRAME'
+    | 'GROUP'
+    | 'VECTOR'
+    | 'BOOLEAN_OPERATION'
+    | 'STAR'
+    | 'LINE'
+    | 'ELLIPSE'
+    | 'REGULAR_POLYGON'
+    | 'RECTANGLE'
+    | 'TEXT'
+    | 'SLICE'
+    | 'COMPONENT'
+    | 'COMPONENT_SET'
+    | 'INSTANCE';
     /** data written by plugins that is visible only to the plugin that wrote it. Requires the `pluginData` to include the ID of the plugin. */
     pluginData?: any;
     /** data written by plugins that is visible to all plugins. Requires the `pluginData` parameter to include the string "shared". */
@@ -68,7 +71,7 @@ export default class FigmaClient {
         };
     }
 
-    async get<T>(path: string, params?: Record<string, string | string[] | number | boolean>): Promise<T> {
+    async get<T extends {}>(path: string, params?: Record<string, string | string[] | number | boolean>): Promise<T> {
         const query = new URLSearchParams()
         for (const [key, value] of Object.entries(params ?? {})) {
 
@@ -78,17 +81,21 @@ export default class FigmaClient {
             query.set(key, formattedValue.toString());
         }
 
-        const queryString = query.size === 0 ? '' : `?${query.toString()}`;
+        const queryString = query.size === 0 ? '' : `?${query.toString().replaceAll('%3A', ':').replaceAll('%2C', ',')}`;
         const data = await fetch(`${this.baseUrl}/${path}${queryString}`, {
             headers: this.headers,
         })
-            .then(r => r.json()) as { data: T } | ErrorResponse;
+            .then(r => r.json()) as T | ErrorResponse;
 
-        if ('err' in data) {
+        if ('err' in data && data.err) {
             throw new Error(data.err);
         }
 
-        return data.data;
+        if ('error' in data && data.error) {
+            throw new Error(data.error);
+        }
+
+        return data as T;
     }
 
     // See https://www.figma.com/developers/api#get-files-endpoint
@@ -109,6 +116,6 @@ export default class FigmaClient {
         use_absolute_bounds?: boolean,
         version?: number,
     }) {
-        return this.get<FileImageResponse>(`files/${fileId}/images`, params);
+        return this.get<FileImageResponse>(`images/${fileId}`, params);
     }
 }
