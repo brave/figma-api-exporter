@@ -9,8 +9,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@types/node": "20.11.5",
+    "@types/node": "22.13.10",
     "ts-node-dev": "2.0.0",
-    "typescript": "5.3.3"
+    "typescript": "5.8.2"
   }
 }
