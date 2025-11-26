@@ -59,11 +59,19 @@ export interface FileResponse {
 
 }
 
+const makeDelayPromise = (delay: number) => new Promise<void>(resolve => setTimeout(resolve, delay));
+
 export default class FigmaClient {
     headers: Record<string, string>;
     baseUrl = 'https://api.figma.com/v1';
 
-    constructor(options: { personalAccessToken: string } | { accessToken: string }) {
+    // The amount of time to wait between requests, in milliseconds.
+    requestDelay: number = 0;
+
+    // The promise to wait for before making the next request.
+    #nextRequestDelay = Promise.resolve();
+
+    constructor(options: { personalAccessToken: string, requestDelay?: number } | { accessToken: string, requestDelay?: number }) {
         this.headers = 'personalAccessToken' in options ? {
             'X-Figma-Token': options.personalAccessToken
         } : {
@@ -82,6 +90,12 @@ export default class FigmaClient {
         }
 
         const queryString = query.size === 0 ? '' : `?${query.toString().replaceAll('%3A', ':').replaceAll('%2C', ',')}`;
+
+        // Wait until we're allowed to make the request (and make sure any subsequent requests will happen after the delay).
+        const delay = this.#nextRequestDelay
+        this.#nextRequestDelay = delay.then(() => makeDelayPromise(this.requestDelay));
+        await delay
+
         const data = await fetch(`${this.baseUrl}/${path}${queryString}`, {
             headers: this.headers,
         })
